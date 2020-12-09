@@ -425,22 +425,29 @@ class ASVDb:
                             # benchmarkResults is the entry in this particular
                             # result file for this benchmark
                             benchmarkResults = resultsDict[benchmarkName]
-
-                            paramNames = benchmarkSpec["param_names"]
-                            paramValues = benchmarkResults["params"]
-                            results = benchmarkResults["result"]
-                            # Inverse of the write operation described in
-                            # self.__updateResultJson()
-                            paramsCartProd = list(itertools.product(*paramValues))
-                            for (paramValueCombo, result) in zip(paramsCartProd, results):
-                                br = BenchmarkResult(
-                                    funcName=benchmarkName,
-                                    argNameValuePairs=zip(paramNames, paramValueCombo),
-                                    result=result)
-                                unit = benchmarkSpec.get("unit")
-                                if unit is not None:
-                                    br.unit = unit
-                                resultObjs.append(br)
+                            if benchmarkSpec and benchmarkResults:
+                                paramNames = benchmarkSpec["param_names"] if "param_names" in benchmarkSpec else []
+                                paramValues = benchmarkSpec["params"] if "params" in benchmarkSpec else []
+                                results = benchmarkResults["result"] if isinstance(benchmarkResults, dict) else benchmarkResults
+                                # Inverse of the write operation described in
+                                # self.__updateResultJson()
+                                if paramValues:
+                                    paramsCartProd = list(itertools.product(*paramValues))
+                                    for (paramValueCombo, result) in zip(paramsCartProd, results):
+                                        br = BenchmarkResult(
+                                            funcName=benchmarkName,
+                                            argNameValuePairs=zip(paramNames, paramValueCombo),
+                                            result=result)
+                                        unit = benchmarkSpec.get("unit")
+                                        if unit is not None:
+                                            br.unit = unit
+                                        resultObjs.append(br)
+                                else:
+                                    br = BenchmarkResult(
+                                        funcName=benchmarkName,
+                                        argNameValuePairs=[],
+                                        result=results)
+                                    resultObjs.append(br)
                         machineResults.append((bi, resultObjs))
 
                 retList += machineResults
